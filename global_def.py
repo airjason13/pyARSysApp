@@ -18,3 +18,7 @@ UNIX_LE_SERVER_URI = '/tmp/ipc_le_server.sock'
 
 STR_REPLY_OK = ";OK"
 STR_REPLY_NG = ";NG"
+
+
+# file uri
+UAP0_HOSTAPD_FILE_URI = "/etc/uap0_hostapd.conf"
