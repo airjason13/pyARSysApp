@@ -1,7 +1,7 @@
 from global_def import *
 from PyQt5.QtCore import QObject, pyqtSignal
 from unix_client import UnixClient
-from utils.file_utils import file_to_dict
+from utils.file_utils import file_to_dict, replace_lines_in_file_with_dict
 
 
 def parser_uap0_config_to_reply_data(data: dict, target_k: str) -> str:
@@ -32,7 +32,7 @@ class CmdParser(QObject):
         super().__init__()
         self.msg_unix_client = msg_unix_client
 
-    def parse_cmds(self, data) -> str:
+    def parse_cmds(self, data: str):
         log.debug("data : %s", data)
 
         d = dict(item.split(':', 1) for item in data.split(';'))
@@ -44,9 +44,7 @@ class CmdParser(QObject):
         log.debug("%s", d)
 
         try:
-            if 'get' in d['cmd']:
-                log.debug("i : %s, v: %s", 'cmd', d['cmd'])
-                self.cmd_function_map[d['cmd']](self, d)
+            self.cmd_function_map[d['cmd']](self, d)
         except Exception as e:
             log.error(e)
 
@@ -80,16 +78,25 @@ class CmdParser(QObject):
         self.unix_data_ready_to_send.emit(reply)
 
     def sys_set_wifi_uap0_ssid_pwd(self, data: dict):
-        pass
+        new_ssid = data['data'].split(':')[0]
+        new_pwd = data['data'].split(':')[1]
+        replace_dict = {'ssid': new_ssid,'wpa_passphrase': new_pwd}
+        replace_lines_in_file_with_dict(UAP0_HOSTAPD_FILE_URI, replace_dict)
 
     def sys_set_wifi_uap0_pwd(self, data: dict):
-        pass
+        new_pwd = data['data']
+        replace_dict = {'wpa_passphrase': new_pwd}
+        replace_lines_in_file_with_dict(UAP0_HOSTAPD_FILE_URI, replace_dict)
 
     def sys_set_wifi_uap0_hw_mode(self, data: dict):
-        pass
+        new_hw_mode = data['data']
+        replace_dict = {'hw_mode': new_hw_mode}
+        replace_lines_in_file_with_dict(UAP0_HOSTAPD_FILE_URI, replace_dict)
 
     def sys_set_wifi_uap0_ssid(self, data: dict):
-        pass
+        new_ssid = data['data']
+        replace_dict = {'ssid': new_ssid}
+        replace_lines_in_file_with_dict(UAP0_HOSTAPD_FILE_URI, replace_dict)
 
     cmd_function_map = {
         SYS_GET_SW_VERSION: sys_get_sw_version,

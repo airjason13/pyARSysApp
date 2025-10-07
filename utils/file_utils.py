@@ -41,6 +41,32 @@ def file_to_dict(filename: str, splitter: str = "=") -> dict:
     return result
 
 
+def replace_lines_in_file_with_dict(filename: str, replacements: dict):
+    """
+    用 replacements dict 更新檔案內容。
+    如果某行以 k= 開頭，就整行替換成 k=v
+    """
+    new_lines = []
+    with open(filename, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    for line in lines:
+        updated = False
+        for k, v in replacements.items():
+            if line.strip().startswith(f"{k}="):
+                new_lines.append(f"{k}={v}\n")
+                updated = True
+                break
+        if not updated:
+            new_lines.append(line)
+
+    with open(filename, "w", encoding="utf-8") as f:
+        f.writelines(new_lines)
+        f.truncate()
+        f.flush()
+        f.close()
+        os.sync()
+
 # example
 if __name__ == "__main__":
     replacements = {
