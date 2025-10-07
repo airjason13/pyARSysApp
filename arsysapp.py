@@ -1,13 +1,14 @@
 import asyncio
 import signal
 import sys
-import threading
 from unix_server import UnixServer
 from unix_client import UnixClient
 from cmd_parser import CmdParser
 from PyQt5.QtCore import QCoreApplication, QTimer, QObject, pyqtSignal
 from qasync import QEventLoop, asyncSlot
 from global_def import *
+from utils.log_utils import root_dir
+
 
 class AsyncWorker(QObject):
     """一個在獨立 Thread 中運行 asyncio 事件迴圈的類別"""
@@ -22,6 +23,7 @@ class AsyncWorker(QObject):
         self.unix_server = None
         self.msg_app_unix_client = None
         self.cmd_parser = None
+        
 
 
     async def custom_parser(data: bytes, addr):

@@ -1,7 +1,10 @@
+import os
+
 from global_def import *
 from PyQt5.QtCore import QObject, pyqtSignal
 from unix_client import UnixClient
 from utils.file_utils import file_to_dict, replace_lines_in_file_with_dict
+from utils.log_utils import root_dir
 
 
 def parser_uap0_config_to_reply_data(data: dict, target_k: str) -> str:
@@ -98,6 +101,11 @@ class CmdParser(QObject):
         replace_dict = {'ssid': new_ssid}
         replace_lines_in_file_with_dict(UAP0_HOSTAPD_FILE_URI, replace_dict)
 
+    def sys_set_wifi_uap0_restart(self, data: dict):
+        restart = data['data']
+        if restart == 'true':
+            os.popen(f"{root_dir}/scripts/restart_wifi_uap0_restart.sh")
+
     cmd_function_map = {
         SYS_GET_SW_VERSION: sys_get_sw_version,
         SYS_GET_WIFI_UAP0_SSID: sys_get_wifi_uap0_ssid,
@@ -108,4 +116,5 @@ class CmdParser(QObject):
         SYS_SET_WIFI_UAP0_PWD: sys_set_wifi_uap0_pwd,
         SYS_SET_WIFI_UAP0_SSID_PWD: sys_set_wifi_uap0_ssid_pwd,
         SYS_SET_WIFI_UAP0_HW_MODE: sys_set_wifi_uap0_hw_mode,
+        SYS_SET_WIFI_UAP0_RESTART: sys_set_wifi_uap0_restart,
     }
