@@ -78,8 +78,8 @@ class CmdParser(QObject):
         self.unix_data_ready_to_send.emit(reply)
 
     def sys_set_wifi_uap0_ssid_pwd(self, data: dict):
-        new_ssid = data['data'].split(':')[0]
-        new_pwd = data['data'].split(':')[1]
+        new_ssid = data['data'].split('_')[0]
+        new_pwd = data['data'].split('_')[1]
         replace_dict = {'ssid': new_ssid,'wpa_passphrase': new_pwd}
         replace_lines_in_file_with_dict(UAP0_HOSTAPD_FILE_URI, replace_dict)
 
