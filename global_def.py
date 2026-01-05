@@ -1,3 +1,6 @@
+import getpass
+import platform
+
 import utils.log_utils
 from version import *
 from arglassescmd.cmd_def import *
@@ -22,3 +25,26 @@ STR_REPLY_NG = ";NG"
 
 # file uri
 UAP0_HOSTAPD_FILE_URI = "/etc/uap0_hostapd.conf"
+
+current_user = getpass.getuser()
+# Media File Uri Path
+if platform.machine() == 'x86_64':
+    MEDIAFILE_URI_PATH = f"/home/{current_user}/Videos/"
+    SNAPSHOTS_URI_PATH = f"/home/{current_user}/Videos/Snapshots/"
+    RECORDINGS_URI_PATH = f"/home/{current_user}/Videos/Recordings/"
+    MEDIA_URI_PATH = f"/home/{current_user}/Videos/Media/"
+    THUMBNAILS_URI_PATH = f"/home/{current_user}/Videos/thumbnails/"
+    PLAYLISTS_URI_PATH = f"/home/{current_user}/Videos/Playlists/"
+    PERSIST_CONFIG_URI_PATH = f"/home/{current_user}/Videos/persist/"
+else:
+    MEDIAFILE_URI_PATH = "/root/MediaFiles/"
+    SNAPSHOTS_URI_PATH = "/root/MediaFiles/Snapshots/"
+    RECORDINGS_URI_PATH = "/root/MediaFiles/Recordings/"
+    MEDIA_URI_PATH = "/root/MediaFiles/Media/"
+    THUMBNAILS_URI_PATH = "/root/MediaFiles/thumbnails/"
+    PLAYLISTS_URI_PATH = "/root/MediaFiles/Playlists/"
+    PERSIST_CONFIG_URI_PATH = "/root/persist_config/"
+
+
+PERSIST_SYSTEM_VOLUME_FILENAME = "persist_system_volume"
+DEFAULT_SYSTEM_VOLUME_FLOAT = 0.4

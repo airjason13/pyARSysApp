@@ -1,4 +1,6 @@
 import asyncio
+import os
+import shutil
 import signal
 import sys
 from unix_server import UnixServer
@@ -8,7 +10,9 @@ from PyQt5.QtCore import QCoreApplication, QTimer, QObject, pyqtSignal
 from qasync import QEventLoop, asyncSlot
 from global_def import *
 from utils.log_utils import root_dir
-
+import subprocess
+import time
+from pathlib import Path
 
 class AsyncWorker(QObject):
     """一個在獨立 Thread 中運行 asyncio 事件迴圈的類別"""
@@ -101,9 +105,32 @@ class AsyncWorker(QObject):
         """安全關閉事件迴圈"""
         self.loop.call_soon_threadsafe(self.loop.stop)
 
+def ensure_pipewire_running():
+    # Only run on specific platforms (e.g., skip x86_64)
+    if platform.machine() == 'x86_64':
+        return
+        
+    BASE_DIR = Path(__file__).resolve().parent
+    SCRIPT = BASE_DIR / "scripts" / "restart_audio.sh"
+    
+    # Defensive check: ensure the script exists
+    if not SCRIPT.exists():
+        log.debug(f"Error: Script not found at {SCRIPT}")
+        return
+
+    try:
+        # Use 'sh' to execute the script in case of missing execute permissions
+        subprocess.run(["sh", str(SCRIPT)], check=True)
+        log.debug("Audio services (PipeWire & WirePlumber) restarted successfully.")
+    except subprocess.CalledProcessError as e:
+        log.debug(f"Error: Failed to restart audio services. Return code: {e.returncode}")
+    except Exception as e:
+        log.debug(f"An unexpected error occurred: {e}")
 
 def main():
     log.debug(f"Welcome to {Version}")
+    # === ensure audio system service ===
+    ensure_pipewire_running()
     # 使用 QCoreApplication 取代 QApplication，不需要 GUI 子系統
     app = QCoreApplication(sys.argv)
     # 用 qasync 把 Qt 事件迴圈包裝成 asyncio 事件迴圈
