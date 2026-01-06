@@ -21,7 +21,8 @@ UNIX_LE_SERVER_URI = '/tmp/ipc_le_server.sock'
 
 STR_REPLY_OK = ";OK"
 STR_REPLY_NG = ";NG"
-
+# i.MX93 lacks an Audio Manager, which means we can't control the whole system's volume at once.
+HAS_AUDIO_MANAGER = False
 
 # file uri
 UAP0_HOSTAPD_FILE_URI = "/etc/uap0_hostapd.conf"

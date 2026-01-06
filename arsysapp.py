@@ -14,13 +14,15 @@ import subprocess
 import time
 from pathlib import Path
 
+from utils.system_volume import SystemVolumeController
+
 class AsyncWorker(QObject):
     """一個在獨立 Thread 中運行 asyncio 事件迴圈的類別"""
-    def __init__(self,async_loop,
+    def __init__(self,async_loop,volume_controller,
                unix_server_path=UNIX_SYS_SERVER_URI):
         super().__init__()
         self.loop = async_loop
-
+        self.volume_controller = volume_controller
         self.unix_server_path = unix_server_path
         self.tcp_server = None
         self.udp_server = None
@@ -52,7 +54,7 @@ class AsyncWorker(QObject):
         self.msg_app_unix_client = UnixClient(UNIX_MSG_SERVER_URI)
         self.unix_server = UnixServer(self.msg_app_unix_client, self.unix_server_path)
         self.unix_server.unix_data_received.connect(self.unix_data_recv_handler)
-        self.cmd_parser = CmdParser(self.msg_app_unix_client)
+        self.cmd_parser = CmdParser(self.msg_app_unix_client, self.volume_controller)
         self.cmd_parser.unix_data_ready_to_send.connect(self.send_to_msg_server)
         await self.unix_server.start()
         await self.msg_app_unix_client.connect()
@@ -109,26 +111,31 @@ def ensure_pipewire_running():
     # Only run on specific platforms (e.g., skip x86_64)
     if platform.machine() == 'x86_64':
         return
-        
-    BASE_DIR = Path(__file__).resolve().parent
-    SCRIPT = BASE_DIR / "scripts" / "restart_audio.sh"
-    
-    # Defensive check: ensure the script exists
-    if not SCRIPT.exists():
-        log.debug(f"Error: Script not found at {SCRIPT}")
-        return
 
-    try:
-        # Use 'sh' to execute the script in case of missing execute permissions
-        subprocess.run(["sh", str(SCRIPT)], check=True)
-        log.debug("Audio services (PipeWire & WirePlumber) restarted successfully.")
-    except subprocess.CalledProcessError as e:
-        log.debug(f"Error: Failed to restart audio services. Return code: {e.returncode}")
-    except Exception as e:
-        log.debug(f"An unexpected error occurred: {e}")
+    if HAS_AUDIO_MANAGER:
+        BASE_DIR = Path(__file__).resolve().parent
+        SCRIPT = BASE_DIR / "scripts" / "restart_audio.sh"
+
+        # Defensive check: ensure the script exists
+        if not SCRIPT.exists():
+            log.debug(f"Error: Script not found at {SCRIPT}")
+            return
+
+        try:
+            # Use 'sh' to execute the script in case of missing execute permissions
+            subprocess.run(["sh", str(SCRIPT)], check=True)
+            log.debug("Audio services (PipeWire & WirePlumber) restarted successfully.")
+        except subprocess.CalledProcessError as e:
+            log.debug(f"Error: Failed to restart audio services. Return code: {e.returncode}")
+        except Exception as e:
+            log.debug(f"An unexpected error occurred: {e}")
+
+
 
 def main():
     log.debug(f"Welcome to {Version}")
+    # Load Persist config
+    volume_controller = SystemVolumeController()
     # === ensure audio system service ===
     ensure_pipewire_running()
     # 使用 QCoreApplication 取代 QApplication，不需要 GUI 子系統
@@ -137,8 +144,7 @@ def main():
     loop = QEventLoop(app)
     asyncio.set_event_loop(loop)
 
-    worker = AsyncWorker(loop)
-
+    worker = AsyncWorker(loop ,volume_controller=volume_controller)
 
     # 友善的 Ctrl+C 結束
     def handle_sigint(*_):

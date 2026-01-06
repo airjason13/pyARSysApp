@@ -6,7 +6,6 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from unix_client import UnixClient
 from utils.file_utils import file_to_dict, replace_lines_in_file_with_dict
 from utils.log_utils import root_dir
-from utils.system_volume import get_system_volume, set_system_volume
 
 
 def parser_uap0_config_to_reply_data(data: dict, target_k: str) -> str:
@@ -33,9 +32,10 @@ def parser_uap0_config_list_to_reply_data(data: dict, list_target_k: list[str]) 
 class CmdParser(QObject):
     unix_data_ready_to_send = pyqtSignal(str)
 
-    def __init__(self, msg_unix_client: UnixClient):
+    def __init__(self, msg_unix_client: UnixClient ,volume_controller):
         super().__init__()
         self.msg_unix_client = msg_unix_client
+        self.volume_ctrl = volume_controller
 
     def parse_cmds(self, data: str):
         log.debug("data : %s", data)
@@ -117,7 +117,7 @@ class CmdParser(QObject):
 
             vol = max(0.0, min(vol, 1.0))
 
-            set_system_volume(vol)
+            self.volume_ctrl.set_system_volume(vol)
 
             payload = {
                 "status": "OK",
@@ -137,7 +137,7 @@ class CmdParser(QObject):
         data['src'], data['dst'] = data['dst'], data['src']
 
         try:
-            vol = get_system_volume()
+            vol = self.volume_ctrl.get_system_volume()
             payload = {
                 "status": "OK",
                 "volume": vol
