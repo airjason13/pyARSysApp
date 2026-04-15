@@ -9,10 +9,24 @@ from utils.log_utils import root_dir
 
 
 def parser_uap0_config_to_reply_data(data: dict, target_k: str) -> str:
-    config_dict = file_to_dict(UAP0_HOSTAPD_FILE_URI, splitter="=")
+    try:
+        config_dict = file_to_dict(UAP0_HOSTAPD_FILE_URI, splitter="=")
 
-    if config_dict[target_k] is not None:
-        data['data'] = f"{config_dict[target_k]}"
+        value = config_dict.get(target_k)
+
+        if value is not None:
+            data['data'] = value
+        else:
+            data['data'] = "unknown"
+
+    except FileNotFoundError:
+        log.error("uap0 config not found: %s", UAP0_HOSTAPD_FILE_URI)
+        data['data'] = "unknown"
+
+    except Exception as e:
+        log.error("parse uap0 config failed: %s", e)
+        data['data'] = "error"
+
     reply = ";".join(f"{k}:{v}" for k, v in data.items())
     return reply
 
