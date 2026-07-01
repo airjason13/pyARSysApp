@@ -5,6 +5,7 @@ from pathlib import Path
 
 from global_def import *
 import json
+import re
 
 def replace_lines_in_file(filename: str, replacements: dict):
     """
@@ -169,6 +170,49 @@ def set_persist_config_float(persist_filename: str, value: float) -> None:
 
     with open(target_persist_uri, 'w', encoding='utf-8') as f:
         f.write(str(value))
+
+
+def parse_version_file(file_path):
+    # 建立一個字典來存放抓取到的變數
+    version_data = {}
+
+    # 定義正則表達式：用來匹配變數名稱與引號內的數值
+    # 範例匹配：Version_PN = "ARSYS" 或 Version_Year = '2025'
+    pattern = re.compile(r'^(Version_[a-zA-Z]+)\s*=\s*[\'"]([^\'"]+)[\'"]')
+
+    # 1. 使用 File I/O 開啟檔案
+    with open(file_path, 'r', encoding='utf-8') as file:
+        for line in file:
+            line = line.strip()  # 去除頭尾空白與換行符號
+
+            # 嘗試匹配每一行
+            match = pattern.match(line)
+            if match:
+                key = match.group(1)  # 例如: Version_PN
+                value = match.group(2)  # 例如: ARSYS
+                version_data[key] = value
+
+    # 2. 獲取 PN
+    pn = version_data.get("Version_PN", "UNKNOWN")
+
+    # 3. 依照你檔案內的邏輯拼湊出完整 Version 字串
+    # 邏輯: PN_YYYYMMDD_MajorMinorPatch
+    try:
+        version = (
+            f"{pn}_"
+            f"{version_data['Version_Year']}"
+            f"{version_data['Version_Month']}"
+            f"{version_data['Version_Date']}_"
+            f"{version_data['Version_Major']}"
+            f"{version_data['Version_Minor']}"
+            f"{version_data['Version_Patch']}"
+        )
+    except KeyError as e:
+        print(f"警告：檔案中缺少必要的版本變數 {e}")
+        version = "UNKNOWN_VERSION"
+
+    return pn, version
+
 
 # 範例：
 if __name__ == "__main__":

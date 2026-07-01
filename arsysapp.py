@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 import shutil
 import signal
@@ -13,6 +14,7 @@ from utils.log_utils import root_dir
 import subprocess
 import time
 from pathlib import Path
+from utils.file_utils import parse_version_file
 
 from utils.system_volume import SystemVolumeController
 
@@ -29,7 +31,7 @@ class AsyncWorker(QObject):
         self.unix_server = None
         self.msg_app_unix_client = None
         self.cmd_parser = None
-        
+        self.all_sw_version = self.get_all_sw_version()
 
 
     async def custom_parser(data: bytes, addr):
@@ -38,6 +40,56 @@ class AsyncWorker(QObject):
 
     def get_version(self):
         return Version
+
+    def get_all_sw_version(self):
+        app_paths = {
+            "ARGLASSESDEMO": ARGLASSESDEMO_URL,
+            "MESSAGESERVER": MESSAGESERVER_URL,
+            "LIGHTENGINE": LIGHTENGINE_URL,
+            "ARSYSAPP": ARSYSAPP_URL,
+            "FLASKMEDIAFILEMANAGER": FLASKMEDIAFILEMANAGER_URL
+        }
+
+        # 2. 建立一個字典來收集所有結果
+        all_versions_info = {}
+
+        # 3. 走訪每個路徑，組合出 version.py 的完整路徑並解析
+        for app_name, base_path in app_paths.items():
+            # 使用 os.path.join 自動處理斜線，組合出 /root/.../version.py
+            file_path = os.path.join(base_path, "version.py")
+
+            # 呼叫解析函式
+            pn, version = parse_version_file(file_path)
+
+            # 將結果存入字典
+            all_versions_info[app_name] = {
+                "PN": pn,
+                "Version": version
+            }
+
+        # 4. 將字典轉換成 JSON 字串
+        # indent=4 可以讓 JSON 格式化排版，更容易閱讀
+        # ensure_ascii=False 確保如果未來有中文不會被轉碼
+        json_output = json.dumps(all_versions_info, indent=4, ensure_ascii=False)
+
+        # 5. 印出或儲存 JSON 結果
+        log.debug(f"all_versions_info: {json_output}")
+
+        try:
+            with open(AR_SW_VERSION_URL, "w", encoding="utf-8") as f:
+                f.write(json_output)
+                f.flush()
+                os.fsync(f.fileno())
+            log.debug(f"✅ 成功將版本資訊寫入 {AR_SW_VERSION_URL}")
+
+        except PermissionError:
+            log.debug(f"❌ 錯誤：沒有權限寫入 {AR_SW_VERSION_URL}。")
+            log.debug("💡 提示：/etc/ 是系統目錄，請加上 sudo 執行此腳本 (例如: sudo python3 your_script.py)")
+
+        except Exception as e:
+            log.debug(f"❌ 寫入檔案時發生未知的錯誤: {e}")
+
+        return json_output
 
     def unix_data_recv_handler(self, msg:str, pid):
         log.debug(f"got {msg} from {pid}")

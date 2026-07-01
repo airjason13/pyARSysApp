@@ -37,6 +37,14 @@ if platform.machine() == 'x86_64':
     THUMBNAILS_URI_PATH = f"/home/{current_user}/Videos/thumbnails/"
     PLAYLISTS_URI_PATH = f"/home/{current_user}/Videos/Playlists/"
     PERSIST_CONFIG_URI_PATH = f"/home/{current_user}/Videos/persist/"
+
+    ARGLASSESDEMO_URL = f"/home/{current_user}/PycharmProjects/pyARGlassesDemo"
+    MESSAGESERVER_URL = f"/home/{current_user}/PycharmProjects/pyMessageServer"
+    LIGHTENGINE_URL = f"/home/{current_user}/PycharmProjects/pyLightEngineApp"
+    ARSYSAPP_URL = f"/home/{current_user}/PycharmProjects/pyARSysApp"
+    FLASKMEDIAFILEMANAGER_URL = f"/home/{current_user}/PycharmProjects/pyFlaskMediaFileManager"
+    AR_SW_VERSION_URL = f"/home/{current_user}/PycharmProjects/pyARSysApp/ar_sw_version" # dump versions to thisfile
+
 else:
     MEDIAFILE_URI_PATH = "/root/MediaFiles/"
     SNAPSHOTS_URI_PATH = "/root/MediaFiles/Snapshots/"
@@ -46,6 +54,14 @@ else:
     PLAYLISTS_URI_PATH = "/root/MediaFiles/Playlists/"
     PERSIST_CONFIG_URI_PATH = "/root/persist_config/"
 
+    ARGLASSESDEMO_URL = "/root/pyARGlassesDemo"
+    MESSAGESERVER_URL = "/root/pyMessageServer"
+    LIGHTENGINE_URL = "/root/pyLightEngineApp"
+    ARSYSAPP_URL = "/root/pyARSysApp"
+    FLASKMEDIAFILEMANAGER_URL = "/root/pyFlaskMediaFileManager"
+    AR_SW_VERSION_URL = "/etc/ar_sw_version" # dump versions to thisfile
+
 
 PERSIST_SYSTEM_VOLUME_FILENAME = "persist_system_volume"
 DEFAULT_SYSTEM_VOLUME_FLOAT = 0.4
+
