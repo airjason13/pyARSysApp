@@ -14,7 +14,7 @@ from utils.log_utils import root_dir
 import subprocess
 import time
 from pathlib import Path
-from utils.file_utils import parse_version_file
+from utils.file_utils import parse_version_file, get_all_sw_version
 
 from utils.system_volume import SystemVolumeController
 
@@ -31,7 +31,7 @@ class AsyncWorker(QObject):
         self.unix_server = None
         self.msg_app_unix_client = None
         self.cmd_parser = None
-        self.all_sw_version = self.get_all_sw_version()
+        self.all_sw_version = get_all_sw_version()
 
 
     async def custom_parser(data: bytes, addr):
@@ -41,7 +41,7 @@ class AsyncWorker(QObject):
     def get_version(self):
         return Version
 
-    def get_all_sw_version(self):
+    def get_all_sw_version_dep(self):
         app_paths = {
             "ARGLASSESDEMO": ARGLASSESDEMO_URL,
             "MESSAGESERVER": MESSAGESERVER_URL,

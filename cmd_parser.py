@@ -4,7 +4,7 @@ import os
 from global_def import *
 from PyQt5.QtCore import QObject, pyqtSignal
 from unix_client import UnixClient
-from utils.file_utils import file_to_dict, replace_lines_in_file_with_dict
+from utils.file_utils import file_to_dict, replace_lines_in_file_with_dict, get_all_sw_version, sys_get_msg_sw_version
 from utils.log_utils import root_dir
 
 
@@ -70,6 +70,22 @@ class CmdParser(QObject):
     def sys_get_sw_version(self, data: dict):
         data['src'], data['dst'] = data['dst'], data['src']
         data['data'] = Version
+        log.debug("data : %s", data)
+        # Dict to Str
+        reply = ";".join(f"{k}:{v}" for k, v in data.items())
+        self.unix_data_ready_to_send.emit(reply)
+
+    def sys_get_msg_sw_version(self, data: dict):
+        data['src'], data['dst'] = data['dst'], data['src']
+        data['data'] = sys_get_msg_sw_version()
+        log.debug("data : %s", data)
+        # Dict to Str
+        reply = ";".join(f"{k}:{v}" for k, v in data.items())
+        self.unix_data_ready_to_send.emit(reply)
+
+    def sys_get_all_sw_version(self, data: dict):
+        data['src'], data['dst'] = data['dst'], data['src']
+        data['data'] = get_all_sw_version()
         log.debug("data : %s", data)
         # Dict to Str
         reply = ";".join(f"{k}:{v}" for k, v in data.items())
@@ -168,6 +184,8 @@ class CmdParser(QObject):
 
     cmd_function_map = {
         SYS_GET_SW_VERSION: sys_get_sw_version,
+        SYS_GET_MSG_SW_VERSION: sys_get_msg_sw_version,
+        SYS_GET_ALL_SW_VERSION: sys_get_all_sw_version,
         SYS_GET_WIFI_UAP0_SSID: sys_get_wifi_uap0_ssid,
         SYS_GET_WIFI_UAP0_PWD: sys_get_wifi_uap0_pwd,
         SYS_GET_WIFI_UAP0_SSID_PWD: sys_get_wifi_uap0_ssid_pwd,

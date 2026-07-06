@@ -213,6 +213,111 @@ def parse_version_file(file_path):
 
     return pn, version
 
+def parse_cmd_version_file(file_path):
+    # 建立一個字典來存放抓取到的變數
+    version_data = {}
+
+    # 定義正則表達式：用來匹配變數名稱與引號內的數值
+    # 範例匹配：Version_PN = "ARSYS" 或 Version_Year = '2025'
+    pattern = re.compile(r'^(CMD_Version_[a-zA-Z]+)\s*=\s*[\'"]([^\'"]+)[\'"]')
+
+    # 1. 使用 File I/O 開啟檔案
+    with open(file_path, 'r', encoding='utf-8') as file:
+        for line in file:
+            line = line.strip()  # 去除頭尾空白與換行符號
+
+            # 嘗試匹配每一行
+            match = pattern.match(line)
+            if match:
+                key = match.group(1)  # 例如: Version_PN
+                value = match.group(2)  # 例如: ARSYS
+                version_data[key] = value
+
+    # 2. 獲取 PN
+    pn = version_data.get("CMD_Version_PN", "UNKNOWN")
+
+    # 3. 依照你檔案內的邏輯拼湊出完整 Version 字串
+    # 邏輯: PN_YYYYMMDD_MajorMinorPatch
+    try:
+        version = (
+            f"{pn}_"
+            f"{version_data['CMD_Version_Year']}"
+            f"{version_data['CMD_Version_Month']}"
+            f"{version_data['CMD_Version_Date']}_"
+            f"{version_data['CMD_Version_Major']}"
+            f"{version_data['CMD_Version_Minor']}"
+            f"{version_data['CMD_Version_Patch']}"
+        )
+    except KeyError as e:
+        print(f"警告：檔案中缺少必要的版本變數 {e}")
+        version = "UNKNOWN_VERSION"
+
+    return pn, version
+
+
+def sys_get_msg_sw_version():
+    pn, version = parse_version_file(os.path.join(MESSAGESERVER_URL, "version.py"))
+    return pn + version
+
+def get_all_sw_version():
+    app_paths = {
+        "ARGLASSESDEMO": ARGLASSESDEMO_URL,
+        "MESSAGESERVER": MESSAGESERVER_URL,
+        "LIGHTENGINE": LIGHTENGINE_URL,
+        "ARSYSAPP": ARSYSAPP_URL,
+        "FLASKMEDIAFILEMANAGER": FLASKMEDIAFILEMANAGER_URL
+    }
+
+    # 2. 建立一個字典來收集所有結果
+    all_versions_info = {}
+
+    # 3. 走訪每個路徑，組合出 version.py 的完整路徑並解析
+    for app_name, base_path in app_paths.items():
+        # 使用 os.path.join 自動處理斜線，組合出 /root/.../version.py
+        pn_file_path = os.path.join(base_path, "version.py")
+
+        cmd_version_path = os.path.join(base_path, "arglassescmd/cmd_def.py")
+
+        # 呼叫解析函式
+        pn, version = parse_version_file(pn_file_path)
+
+        if os.path.exists(cmd_version_path):
+            cmd_pn, cmd_version = parse_cmd_version_file(cmd_version_path)
+        else:
+            cmd_pn = "NONE"
+            cmd_version = "NONE"
+
+        # 將結果存入字典
+        all_versions_info[app_name] = {
+            "PN": pn,
+            "Version": version,
+            "CMD_PN": cmd_pn,
+            "CMD_VERSION": cmd_version
+        }
+
+    # 4. 將字典轉換成 JSON 字串
+    # indent=4 可以讓 JSON 格式化排版，更容易閱讀
+    # ensure_ascii=False 確保如果未來有中文不會被轉碼
+    json_output = json.dumps(all_versions_info, indent=4, ensure_ascii=False)
+
+    # 5. 印出或儲存 JSON 結果
+    log.debug(f"all_versions_info: {json_output}")
+
+    try:
+        with open(AR_SW_VERSION_URL, "w", encoding="utf-8") as f:
+            f.write(json_output)
+            f.flush()
+            os.fsync(f.fileno())
+        log.debug(f"✅ 成功將版本資訊寫入 {AR_SW_VERSION_URL}")
+
+    except PermissionError:
+        log.debug(f"❌ 錯誤：沒有權限寫入 {AR_SW_VERSION_URL}。")
+        log.debug("💡 提示：/etc/ 是系統目錄，請加上 sudo 執行此腳本 (例如: sudo python3 your_script.py)")
+
+    except Exception as e:
+        log.debug(f"❌ 寫入檔案時發生未知的錯誤: {e}")
+
+    return json_output
 
 # 範例：
 if __name__ == "__main__":
