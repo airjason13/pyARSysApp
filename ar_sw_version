@@ -1,0 +1,32 @@
+{
+    "ARGLASSESDEMO": {
+        "PN": "ARGlassesDemo",
+        "Version": "ARGlassesDemo_20260701_010000",
+        "CMD_PN": "ARGLASSES_CMD",
+        "CMD_VERSION": "ARGLASSES_CMD_20251203_010000"
+    },
+    "MESSAGESERVER": {
+        "PN": "MsgServer",
+        "Version": "MsgServer_2026624_010000",
+        "CMD_PN": "ARGLASSES_CMD",
+        "CMD_VERSION": "ARGLASSES_CMD_20251029_010000"
+    },
+    "LIGHTENGINE": {
+        "PN": "LE",
+        "Version": "LE_20260617_010000",
+        "CMD_PN": "ARGLASSES_CMD",
+        "CMD_VERSION": "ARGLASSES_CMD_20251203_010000"
+    },
+    "ARSYSAPP": {
+        "PN": "ARSYS",
+        "Version": "ARSYS_20260706_010000",
+        "CMD_PN": "ARGLASSES_CMD",
+        "CMD_VERSION": "ARGLASSES_CMD_20270706_020000"
+    },
+    "FLASKMEDIAFILEMANAGER": {
+        "PN": "FlaskMediaFileManager",
+        "Version": "FlaskMediaFileManager_20260624_010000",
+        "CMD_PN": "NONE",
+        "CMD_VERSION": "NONE"
+    }
+}
